@@ -1,0 +1,126 @@
+schema {
+  query: Query
+}
+
+type Admin implements Node {
+  Id: ID!
+  role: String!
+  name: String
+  enabled: Boolean
+  adminSecret: String
+  id: ID!
+}
+
+type AdminConnection {
+  pageInfo: PageInfo!
+  edges: [AdminEdge]!
+}
+
+type AdminEdge {
+  node: Admin
+  cursor: String!
+}
+
+enum AdminSortEnum {
+  _ID_ASC
+  _ID_DESC
+  ROLE_ASC
+  ROLE_DESC
+  NAME_ASC
+  NAME_DESC
+  ENABLED_ASC
+  ENABLED_DESC
+  ADMIN_SECRET_ASC
+  ADMIN_SECRET_DESC
+}
+
+union AnyAdmins = Admin | SuperAdmin
+
+union AnyUsers = User | Admin | SuperAdmin
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Query {
+  relayUsers(sort: [UserSortEnum] = [_ID_ASC], before: String, after: String, first: Int, last: Int): UserConnection
+  users: [User]
+  relaySuperadmins(sort: [SuperAdminSortEnum] = [_ID_ASC], before: String, after: String, first: Int, last: Int): SuperAdminConnection
+  superadmins: [SuperAdmin]
+  relayAdmins(sort: [AdminSortEnum] = [_ID_ASC], before: String, after: String, first: Int, last: Int): AdminConnection
+  admins: [Admin]
+  AnyUsers: [AnyUsers]
+  AnyAdmins: [AnyAdmins]
+  node(id: ID!): Node
+}
+
+type SuperAdmin implements Node {
+  Id: ID!
+  role: String!
+  name: String
+  enabled: Boolean
+  adminSecret: String
+  superSecret: String
+  id: ID!
+}
+
+type SuperAdminConnection {
+  pageInfo: PageInfo!
+  edges: [SuperAdminEdge]!
+}
+
+type SuperAdminEdge {
+  node: SuperAdmin
+  cursor: String!
+}
+
+enum SuperAdminSortEnum {
+  _ID_ASC
+  _ID_DESC
+  ROLE_ASC
+  ROLE_DESC
+  NAME_ASC
+  NAME_DESC
+  ENABLED_ASC
+  ENABLED_DESC
+  ADMIN_SECRET_ASC
+  ADMIN_SECRET_DESC
+  SUPER_SECRET_ASC
+  SUPER_SECRET_DESC
+}
+
+type User implements Node {
+  Id: ID!
+  role: String!
+  name: String
+  enabled: Boolean
+  id: ID!
+}
+
+type UserConnection {
+  pageInfo: PageInfo!
+  edges: [UserEdge]!
+}
+
+type UserEdge {
+  node: User
+  cursor: String!
+}
+
+enum UserSortEnum {
+  _ID_ASC
+  _ID_DESC
+  ROLE_ASC
+  ROLE_DESC
+  NAME_ASC
+  NAME_DESC
+  ENABLED_ASC
+  ENABLED_DESC
+}
