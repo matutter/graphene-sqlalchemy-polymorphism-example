@@ -2,7 +2,7 @@ schema {
   query: Query
 }
 
-type Admin implements Node {
+type Admin implements Node, IUser, IAdmin {
   Id: ID!
   role: String!
   name: String
@@ -38,6 +38,30 @@ union AnyAdmins = Admin | SuperAdmin
 
 union AnyUsers = User | Admin | SuperAdmin
 
+interface IAdmin {
+  Id: ID!
+  role: String!
+  name: String
+  enabled: Boolean
+  adminSecret: String
+}
+
+interface ISuperAdmin {
+  Id: ID!
+  role: String!
+  name: String
+  enabled: Boolean
+  adminSecret: String
+  superSecret: String
+}
+
+interface IUser {
+  Id: ID!
+  role: String!
+  name: String
+  enabled: Boolean
+}
+
 interface Node {
   id: ID!
 }
@@ -52,16 +76,16 @@ type PageInfo {
 type Query {
   relayUsers(sort: [UserSortEnum] = [_ID_ASC], before: String, after: String, first: Int, last: Int): UserConnection
   users: [User]
-  relaySuperadmins(sort: [SuperAdminSortEnum] = [_ID_ASC], before: String, after: String, first: Int, last: Int): SuperAdminConnection
-  superadmins: [SuperAdmin]
   relayAdmins(sort: [AdminSortEnum] = [_ID_ASC], before: String, after: String, first: Int, last: Int): AdminConnection
   admins: [Admin]
+  relaySuperadmins(sort: [SuperAdminSortEnum] = [_ID_ASC], before: String, after: String, first: Int, last: Int): SuperAdminConnection
+  superadmins: [SuperAdmin]
   AnyUsers: [AnyUsers]
   AnyAdmins: [AnyAdmins]
   node(id: ID!): Node
 }
 
-type SuperAdmin implements Node {
+type SuperAdmin implements Node, ISuperAdmin, IAdmin, IUser {
   Id: ID!
   role: String!
   name: String
@@ -96,7 +120,7 @@ enum SuperAdminSortEnum {
   SUPER_SECRET_DESC
 }
 
-type User implements Node {
+type User implements Node, IUser {
   Id: ID!
   role: String!
   name: String

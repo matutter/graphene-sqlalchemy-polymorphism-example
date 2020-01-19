@@ -86,18 +86,50 @@ def make_schema():
   # Here we dynamically generate an interface similar to this example
   # https://github.com/graphql-python/graphene-sqlalchemy/blob/master/docs/examples.rst
 
+  from sqlalchemy.orm.attributes import InstrumentedAttribute
+
+  
   import graphene
-  from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
   from graphene.relay import Connection, Node
+  
+  from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 
   # A map of all classes to list of sub-classes
   class_map = get_class_map(Base.__subclasses__())
   # Map of models to SQLAlchemyObjectType
   sql_map = dict()
+  # Map of models to graphene.Interface
+  ifa_map = dict()
   # Map of all things available on query, generates Schema
   queries = dict()
 
+  IName = type(f'IName', (graphene.Interface, ), {
+    'name': graphene.String(),
+    'role': graphene.String()
+  })
+
   for cls, subs in class_map.items():
+    ifas = [Node]
+
+    if cls in ifa_map:
+      ifas.extend[ifa_map[cls]]
+    else:
+      ifa = make_graphene_interface(cls)
+      ifas.insert(0, ifa)
+
+    bases = list(cls.__bases__)
+    while bases:
+      base = bases.pop(0)
+      if base in ifa_map:
+        bases.extend(list(base.__bases__))
+        ifas.extend(ifa_map[base])
+
+    ifas = list(set(ifas))
+    ifa_map[cls] = ifas[:]
+
+
+    print(f'INTERFACES: {cls.__name__} => {", ".join([c.__name__ for c in ifas])}')
+
     # Name for the Type of X
     name       = cls.__name__.replace('Model', '')
     # Name for the Type of X and and relationship to Y
@@ -108,8 +140,9 @@ def make_schema():
     SqlType  = type(name, (SQLAlchemyObjectType,), {
       'Meta': type('Meta',(), {
           'model': cls
-        , 'interfaces': (Node,)
+        , 'interfaces': tuple(ifas)
       })})
+
     SqlTypeConnection = type(conn_name, (Connection,), {
       'Meta': type('Meta',(), {'node': SqlType})})
 
@@ -131,9 +164,11 @@ def make_schema():
     poly_query_name  = f'resolve_{poly_name}'
 
     SqlUnionType = type(poly_name, (graphene.Union, ), {
-      'Meta': type('Meta',(), {'types': tuple(sql_types)})
-      , 'resolve_type': make_resolve_type_func(sql_map)
-      })
+      'Meta': type('Meta',(), {
+        'types': tuple(sql_types),
+        'interfaces': (IName,)}),
+
+      'resolve_type': make_resolve_type_func(sql_map)})
 
     queries[poly_name] = graphene.List(SqlUnionType)
     queries[poly_query_name] = make_resolve_func(SqlUnionType)
@@ -181,17 +216,14 @@ if 0: dump_yaml(result)
 query = '''
 query {
   AnyUsers {
-    ... on User {
+    ... on IUser {
       name
       role
     }
-    ... on Admin {
-      name
+    ... on IAdmin {
       adminSecret
     }
-    ... on SuperAdmin {
-      name
-      adminSecret
+    ... on ISuperAdmin {
       superSecret
     }
   }
