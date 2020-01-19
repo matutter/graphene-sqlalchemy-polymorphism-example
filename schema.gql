@@ -85,7 +85,7 @@ type Query {
   node(id: ID!): Node
 }
 
-type SuperAdmin implements Node, ISuperAdmin, IAdmin, IUser {
+type SuperAdmin implements IAdmin, Node, ISuperAdmin, IUser {
   Id: ID!
   role: String!
   name: String

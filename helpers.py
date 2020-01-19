@@ -1,8 +1,9 @@
 def update_schema(path, schema):
   s = str(schema)
   with open(path, 'r') as fd:
-    if fd.read() == s:
+    if len(fd.read()) == len(s):
       return
+  print(f'Writing scheama to {path}')
   with open(path, 'w') as fd:
     fd.write(s)
 
@@ -10,17 +11,16 @@ def dump_yaml(d:dict):
   from graphql.execution.base import ExecutionResult
   from ruamel.yaml import YAML, Representer
   from collections import OrderedDict
-  import ruamel.yaml as _YAML
+  from ruamel.yaml import RoundTripRepresenter as RTR, RoundTripDumper as RTD
+  import ruamel.yaml as yaml
   import sys
 
   if isinstance(d, ExecutionResult):
     d = d.to_dict()
 
-  yaml=YAML(typ='safe', pure=True)
-  yaml.indent(sequence=2, offset=0)
-  yaml.default_flow_style = False
-  yaml.representer.add_representer(OrderedDict, Representer.represent_dict)
-  yaml.dump(d, sys.stdout)
+
+  yaml.add_representer(OrderedDict, RTR.represent_dict, Dumper=RTD)
+  yaml.dump(d, sys.stdout, Dumper=RTD)
 
 def get_class_map(classes):
   from collections import OrderedDict

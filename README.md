@@ -72,14 +72,13 @@ data:
     role: user
   - name: c
     role: user
-  - adminSecret: 9a2145461348
-    name: a
+  - name: a
     role: admin
-  - adminSecret: 9a2145461348
-    name: d
+    adminSecret: 3dc88980daae
+  - name: d
     role: superadmin
-    superSecret: d2377afec750
-
+    adminSecret: 3dc88980daae
+    superSecret: 46d9d195167c
 ```
 
 ## Setup
